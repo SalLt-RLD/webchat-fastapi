@@ -2,7 +2,6 @@ import os
 from typing import Any, AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-# DATABASE_URL = "sqlite+aiosqlite:///../../chat.db"
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATABASE_URL = f"sqlite+aiosqlite:///{os.path.join(BASE_DIR, 'chat.db')}"
 

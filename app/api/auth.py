@@ -28,7 +28,6 @@ async def register_user(user_data: Annotated[UserCreateSchema, Depends()],
 
     hashed_password = bcrypt.hash(user_data.password)
 
-    # Создаём нового пользователя
     new_user = User(username=user_data.username, hashed_password=hashed_password)
     session.add(new_user)
     await session.commit()
