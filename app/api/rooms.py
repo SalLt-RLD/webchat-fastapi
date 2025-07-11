@@ -11,14 +11,14 @@ from app.schemas.room import RoomRead, RoomCreate
 router = APIRouter()
 
 
-@router.get("/", response_model=list[RoomRead])
+@router.get("/")
 async def get_rooms(session: AsyncSession = Depends(get_async_session)) -> list[RoomRead]:
     query = select(Room)
     result = await session.execute(query)
     return [RoomRead.model_validate(room, from_attributes=True) for room in result.scalars().all()]
 
 
-@router.post("/", response_model=RoomRead, status_code=201)
+@router.post("/", status_code=201)
 async def create_room(room_data: Annotated[RoomCreate, Depends()],
                       session: AsyncSession = Depends(get_async_session)) -> RoomRead:
     new_room = Room(name=room_data.name, description=room_data.description)
