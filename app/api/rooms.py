@@ -5,7 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_async_session
-from app.models.models import Room
+from app.dependencies.auth import get_current_user
+from app.models.models import Room, User
 from app.schemas.room import RoomRead, RoomCreate
 
 router = APIRouter()
@@ -20,6 +21,7 @@ async def get_rooms(session: AsyncSession = Depends(get_async_session)) -> list[
 
 @router.post("/", status_code=201)
 async def create_room(room_data: Annotated[RoomCreate, Depends()],
+                      current_user: User = Depends(get_current_user),
                       session: AsyncSession = Depends(get_async_session)) -> RoomRead:
     new_room = Room(name=room_data.name, description=room_data.description)
     session.add(new_room)

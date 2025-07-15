@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Chat Test</title>
+</head>
+<body>
+<h2>🔥 WebSocket Chat</h2>
+
+<label>Room ID:
+    <input id="roomId" type="number" value="1" />
+</label><br><br>
+
+<label>Message:
+    <input id="messageInput" type="text" />
+</label>
+
+<button onclick="sendMessage()">Send</button>
+
+<ul id="messagesList"></ul>
+
+<script>
+    let socket;
+
+    const roomIdInput = document.getElementById("roomId");
+    const messageInput = document.getElementById("messageInput");
+    const messagesList = document.getElementById("messagesList");
+
+    function connect() {
+        const roomId = roomIdInput.value;
+        socket = new WebSocket(`ws://localhost:8000/ws/${roomId}`);
+
+        socket.onopen = () => {
+            console.log("✅ WebSocket connected");
+        };
+
+        socket.onmessage = event => {
+            const li = document.createElement("li");
+            li.innerText = event.data;
+            messagesList.appendChild(li);
+        };
+
+        socket.onclose = () => {
+            console.log("❌ WebSocket disconnected");
+        };
+
+        socket.onerror = err => {
+            console.error("WebSocket error:", err);
+        };
+    }
+
+    function sendMessage() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            connect(); // подключаемся, если еще нет
+            setTimeout(() => sendMessage(), 500); // подождём перед отправкой
+            return;
+        }
+        const message = messageInput.value;
+        socket.send(message);
+        messageInput.value = "";
+    }
+
+    // Автоматически подключаемся при загрузке страницы
+    window.onload = connect;
+</script>
+</body>
+</html>
