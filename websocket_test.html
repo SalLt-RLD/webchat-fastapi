@@ -8,7 +8,7 @@
 <h2>🔥 WebSocket Chat</h2>
 
 <label>Room ID:
-    <input id="roomId" type="number" value="1" />
+    <input id="roomId" type="number" value="3" />
 </label><br><br>
 
 <label>Message:
@@ -28,18 +28,28 @@
 
     function connect() {
         const roomId = roomIdInput.value;
-        socket = new WebSocket(`ws://localhost:8000/ws/${roomId}`);
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzUyOTYyNTg0fQ.L6XrkYUf-vBZr0Z-m1MgKI0pX5qAE2g3RPYs4P3NrGs"
+        socket = new WebSocket(`ws://localhost:8000/ws/${roomId}?token=` + token);
+<!--        socket = new WebSocket(`ws://localhost:8000/ws/${roomId}`);-->
 
         socket.onopen = () => {
             console.log("✅ WebSocket connected");
         };
 
         socket.onmessage = event => {
-            const li = document.createElement("li");
-            li.innerText = event.data;
-            messagesList.appendChild(li);
+            try {
+                const message = JSON.parse(event.data);  // Парсим строку JSON в объект
+                const li = document.createElement("li");
+                li.innerText = `${message.user_id}: ${message.content}`;
+                messagesList.appendChild(li);
+            } catch (err) {
+                console.error("Ошибка парсинга JSON:", err);
+                // Если пришло не JSON, выводим как есть (на всякий случай)
+                const li = document.createElement("li");
+                li.innerText = event.data;
+                messagesList.appendChild(li);
+            }
         };
-
         socket.onclose = () => {
             console.log("❌ WebSocket disconnected");
         };

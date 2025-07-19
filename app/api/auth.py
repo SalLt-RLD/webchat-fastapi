@@ -1,10 +1,9 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from app.db.session import get_async_session
+from app.db.requests_db import get_user_by_name, add_user
+from app.db.session import get_async_session, AsyncSession
 from app.dependencies.auth import get_current_user
 from app.models.models import User
 from app.schemas.user import UserCreateSchema
@@ -17,10 +16,7 @@ router = APIRouter()
 @router.post("/register", status_code=201)
 async def register_user(user_data: Annotated[UserCreateSchema, Depends()],
                         session: AsyncSession = Depends(get_async_session)):
-    query = select(User).where(User.username == user_data.username)
-    result = await session.execute(query)
-    existing_user = result.scalar_one_or_none()
-
+    existing_user: User | None = await get_user_by_name(session=session, username=user_data.username)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -29,19 +25,14 @@ async def register_user(user_data: Annotated[UserCreateSchema, Depends()],
 
     hashed_password: str = hash_password(user_data.password)
 
-    new_user = User(username=user_data.username, hashed_password=hashed_password)
-    session.add(new_user)
-    await session.commit()
-
+    await add_user(session=session, username=user_data.username, hashed_password=hashed_password)
     return {"message": "Пользователь зарегистрирован"}
 
 
 @router.post("/login")
 async def login_user(user_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                      session: AsyncSession = Depends(get_async_session)):
-    query = select(User).where(User.username == user_data.username)
-    result = await session.execute(query)
-    user: User | None = result.scalar_one_or_none()
+    user: User | None = await get_user_by_name(session=session, username=user_data.username)
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid username or password")
