@@ -25,7 +25,9 @@ async def ws_connection(room_id: int, websocket: WebSocket):
         await websocket.close(code=1008)
         return
 
-    await manager.connect(websocket=websocket, room_id=room_id)
+    await manager.connect(websocket=websocket, room_id=room_id, user_id=user_id)
+    online_users: int = manager.get_online_users(room_id)
+    await manager.broadcast(room_id, f"Пользователей онлайн: [{online_users}]")
     async with get_temp_session() as session:
         messages: AsyncGenerator[Message] = get_messages_stream(session=session, room_id=room_id)
         async for msg in messages:
@@ -48,4 +50,6 @@ async def ws_connection(room_id: int, websocket: WebSocket):
                 }))
 
         except WebSocketDisconnect:
-            await manager.disconnect(websocket=websocket, room_id=room_id)
+            await manager.disconnect(websocket=websocket, room_id=room_id, user_id=user_id)
+            online_users: int = manager.get_online_users(room_id)
+            await manager.broadcast(room_id, f"Пользователей онлайн: [{online_users}]")
