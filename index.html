@@ -61,6 +61,7 @@
 
         socket.onopen = () => {
           console.log("✅ WebSocket connected");
+          chatDiv.innerHTML = ""; // <-- вот здесь чистим чат
           chatDiv.innerHTML += `<div class="message">📡 Connected to room ${roomId}</div>`;
         };
 
@@ -71,6 +72,17 @@
 
             if (data.type === "users_online") {
               onlineUsersDiv.textContent = `👥 Online: ${data.users.length ? data.users.join(', ') : "(никого нет 😢)"}`;
+              return;
+            }
+
+            if (data.type === "system") {
+              const sysMsg = document.createElement("div");
+              sysMsg.classList.add("message");
+              sysMsg.style.fontStyle = "italic";
+              sysMsg.style.color = "#999";
+              sysMsg.textContent = data.content;
+              chatDiv.appendChild(sysMsg);
+              chatDiv.scrollTop = chatDiv.scrollHeight;
               return;
             }
 

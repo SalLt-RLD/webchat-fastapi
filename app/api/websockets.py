@@ -58,6 +58,8 @@ async def ws_connection(room_id: int, websocket: WebSocket):
         return
 
     async with get_temp_session() as session:
+        user: User = await get_user_by_id(session=session, user_id=user_id)
+        username: str = user.username
         await manager.connect(websocket=websocket, room_id=room_id, user_id=user_id)
         await send_online_count(session=session, room_id=room_id)
 
@@ -65,6 +67,11 @@ async def ws_connection(room_id: int, websocket: WebSocket):
         async for msg in messages:
             user: User = await get_user_by_id(session=session, user_id=msg.user_id)
             await websocket.send_text(message_to_json(message=msg, username=user.username))
+
+        await manager.broadcast(room_id, json.dumps({
+            "type": "system",
+            "content": f"🟢 {username} вошёл в чат"
+        }))
 
         try:
             while True:
@@ -76,3 +83,7 @@ async def ws_connection(room_id: int, websocket: WebSocket):
         except WebSocketDisconnect:
             await manager.disconnect(websocket=websocket, room_id=room_id, user_id=user_id)
             await send_online_count(session=session, room_id=room_id)
+            await manager.broadcast(room_id, json.dumps({
+                "type": "system",
+                "content": f"🔴 {username} покинул чат"
+            }))
