@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.db.requests_db import get_user_by_name, add_user
@@ -30,13 +30,23 @@ async def register_user(user_data: Annotated[UserCreateSchema, Depends()],
 
 
 @router.post("/login")
-async def login_user(user_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+async def login_user(response: Response, user_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                      session: AsyncSession = Depends(get_async_session)):
     user: User | None = await get_user_by_name(session=session, username=user_data.username)
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid username or password")
     token = create_access_token({"sub": str(user.id)})
+
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=False,  # True если HTTPS
+        samesite="lax",  # или Strict
+        domain="localhost",
+    )
+
     return {
         "access_token": token,
         "token_type": "bearer"

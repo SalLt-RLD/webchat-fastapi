@@ -1,5 +1,4 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status, Request
 from jose import JWTError
 
 from app.db.requests_db import get_user_by_id
@@ -7,28 +6,32 @@ from app.core.jwt import decode_access_token
 from app.db.session import get_async_session, AsyncSession
 from app.models.models import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-
 
 async def get_current_user(
-        token: str = Depends(oauth2_scheme),
+        request: Request,
         session: AsyncSession = Depends(get_async_session)
 ) -> User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials (invalid token)",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated (no token in cookies)",
+        )
 
     try:
-        payload: dict | None = decode_access_token(token)
-        user_id: int = int(payload.get("sub"))
+        payload = decode_access_token(token)
+        user_id = int(payload.get("sub"))
     except (JWTError, ValueError, TypeError):
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials (invalid token)",
+        )
 
-    user: User | None = await get_user_by_id(session=session, user_id=user_id)
-
-    if not user:
-        raise credentials_exception
+    user = await get_user_by_id(session=session, user_id=user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
 
     return user
