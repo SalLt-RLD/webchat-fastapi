@@ -68,10 +68,12 @@ async def ws_connection(room_id: int, websocket: WebSocket):
             user: User = await get_user_by_id(session=session, user_id=msg.user_id)
             await websocket.send_text(message_to_json(message=msg, username=user.username))
 
-        await manager.broadcast(room_id, json.dumps({
-            "type": "system",
-            "content": f"🟢 {username} вошёл в чат"
-        }))
+        users_id: list[int] = manager.get_online_users(room_id)
+        if users_id.count(user_id) <= 1:
+            await manager.broadcast(room_id, json.dumps({
+                "type": "system",
+                "content": f"🟢 {username} вошёл в чат"
+            }))
 
         try:
             while True:
@@ -81,9 +83,11 @@ async def ws_connection(room_id: int, websocket: WebSocket):
                 await manager.broadcast(room_id, message_to_json(new_message, user.username))
 
         except WebSocketDisconnect:
+            users_id: list[int] = manager.get_online_users(room_id)
             await manager.disconnect(websocket=websocket, room_id=room_id, user_id=user_id)
             await send_online_count(session=session, room_id=room_id)
-            await manager.broadcast(room_id, json.dumps({
-                "type": "system",
-                "content": f"🔴 {username} покинул чат"
-            }))
+            if users_id.count(user_id) <= 1:
+                await manager.broadcast(room_id, json.dumps({
+                    "type": "system",
+                    "content": f"🔴 {username} покинул чат"
+                }))

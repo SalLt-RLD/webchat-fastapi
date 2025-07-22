@@ -21,7 +21,7 @@ async def get_current_user(
     try:
         payload = decode_access_token(token)
         user_id = int(payload.get("sub"))
-    except (JWTError, ValueError, TypeError):
+    except (JWTError, ValueError, TypeError, AttributeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials (invalid token)",
