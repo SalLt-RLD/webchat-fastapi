@@ -1,32 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>🔥 Chat</title>
-    <link rel="stylesheet" href="../static/css/chat.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 WebSocket Chat</title>
+    <link rel="stylesheet" href="../static/css/chat.css">
 </head>
 <body>
 <div class="chat-container">
-    <header>
-        <h2>🔥 WebSocket Chat</h2>
-        <div class="room-connect">
-            <label for="roomId">Room ID:</label>
-            <input id="roomId" type="number" value="1" min="1"/>
-            <button onclick="connect()">Connect</button>
+    <!-- Боковая панель с комнатами -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Чаты</h2>
+            <button id="createRoomBtn">+ Новый чат</button>
         </div>
-    </header>
+        <div id="roomList" class="room-list"></div>
+        <button id="burgerMenu" class="burger-menu">☰</button>
+    </aside>
 
-    <main id="chat" class="chat-box" aria-live="polite"></main>
+    <!-- Основная область чата -->
+    <div class="chat-main">
+        <header>
+            <h2 id="currentRoomName"></h2>
+            <div class="room-connect">
+                <span id="connectionSpinner" class="spinner hidden">Подключение...</span>
+            </div>
+        </header>
+        <div class="chat-box">
+            <div id="chat"></div>
+        </div>
+        <footer>
+            <label for="messageInput"></label><input type="text" id="messageInput" placeholder="Сообщение">
+            <button onclick="sendMessage()">Отправить</button>
+            <div id="onlineUsers" class="online-users">👥 Online: (не загружено)</div>
+        </footer>
+    </div>
 
-    <footer>
-        <label for="messageInput" hidden>Message</label>
-        <input id="messageInput" type="text" placeholder="Type your message..."/>
-        <button onclick="sendMessage()">Send</button>
-        <div id="onlineUsers" class="online-users">👥 Online: (не загружено)</div>
-    </footer>
+    <!-- Модальное окно для создания комнаты -->
+    <div id="createRoomModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Создать новую комнату</h3>
+            <label for="newRoomName"></label><input type="text" id="newRoomName" placeholder="Название комнаты" required>
+            <label for="newRoomDescription"></label><textarea id="newRoomDescription" placeholder="Описание (необязательно)"></textarea>
+            <div class="modal-actions">
+                <button id="confirmCreateRoom">Создать</button>
+                <button id="cancelCreateRoom">Отмена</button>
+            </div>
+        </div>
+    </div>
 </div>
-
 <script src="../static/js/chat.js"></script>
 </body>
 </html>

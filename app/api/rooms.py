@@ -5,7 +5,7 @@ from app.db.requests_db import get_rooms, add_room
 from app.db.session import get_async_session, AsyncSession
 from app.dependencies.auth import get_current_user
 from app.models.models import Room, User
-from app.schemas.room import RoomRead, RoomCreate
+from app.schemas.room import RoomRead, RoomCreateForm
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ async def get_rooms_handler(session: AsyncSession = Depends(get_async_session)) 
 
 
 @router.post("/", status_code=201)
-async def create_room(room_data: Annotated[RoomCreate, Depends()],
+async def create_room(room_data: Annotated[RoomCreateForm, Depends()],
                       current_user: User = Depends(get_current_user),
                       session: AsyncSession = Depends(get_async_session)) -> RoomRead:
     new_room: Room = await add_room(
