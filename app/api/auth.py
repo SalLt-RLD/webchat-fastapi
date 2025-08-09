@@ -1,12 +1,12 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Body
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.db.requests_db import get_user_by_name, add_user
 from app.db.session import get_async_session, AsyncSession
 from app.dependencies.auth import get_current_user
 from app.models.models import User
-from app.schemas.user import UserCreateSchema
+from app.schemas.user import UserCreateForm
 from app.core.jwt import create_access_token
 from app.core.hashing import hash_password, verify_password
 
@@ -14,8 +14,12 @@ router = APIRouter()
 
 
 @router.post("/register", status_code=201)
-async def register_user(user_data: Annotated[UserCreateSchema, Depends()],
-                        session: AsyncSession = Depends(get_async_session)):
+async def register_user(
+        form_data: Annotated[UserCreateForm, Depends()],
+        session: AsyncSession = Depends(get_async_session)
+):
+    user_data = form_data.to_schema()
+
     existing_user: User | None = await get_user_by_name(session=session, username=user_data.username)
     if existing_user:
         raise HTTPException(
@@ -24,7 +28,6 @@ async def register_user(user_data: Annotated[UserCreateSchema, Depends()],
         )
 
     hashed_password: str = hash_password(user_data.password)
-
     await add_user(session=session, username=user_data.username, hashed_password=hashed_password)
     return {"message": "Пользователь зарегистрирован"}
 

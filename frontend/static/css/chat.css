@@ -181,15 +181,6 @@ footer button:hover {
     }
 }
 
-/* markdown стили */
-.message .content b {
-    font-weight: bold;
-    color: #ffe57f;
-}
-.message .content i {
-    font-style: italic;
-    color: #b0c4ff;
-}
 .message .content code {
     font-family: "Courier New", monospace;
     background-color: #444;

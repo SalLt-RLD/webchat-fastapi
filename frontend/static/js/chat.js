@@ -43,7 +43,8 @@ async function connect() {
         });
 
         if (!response.ok) {
-            alert("❌ Not authenticated. Please log in first.");
+            console.warn("⚠️ Не авторизован. Перенаправляем на логин...");
+            window.location.href = "/login";
             return;
         }
 
@@ -69,11 +70,11 @@ async function connect() {
             if (date.toDateString() === now.toDateString()) return "Сегодня";
             if (date.toDateString() === yesterday.toDateString()) return "Вчера";
 
-            return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long" }); // например, "30 июля"
+            return date.toLocaleDateString("ru-RU", {day: "numeric", month: "long"}); // например, "30 июля"
         }
 
         function formatTimeLabel(date) {
-            return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            return date.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
         }
 
         function addDateSeparator(date) {
