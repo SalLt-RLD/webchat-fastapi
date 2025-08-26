@@ -233,14 +233,21 @@ header h2 {
     align-self: flex-end;
     background: linear-gradient(135deg, #3a8dff, #007bff);
     color: #fff;
-    border-top-right-radius: 2px;
+    border-top-right-radius: 1px;
 }
 
 .other-message {
     align-self: flex-start;
     background: #2f2f47;
     color: #f1f1f1;
-    border-top-right-radius: 2px;
+    border-top-left-radius: 1px;
+}
+
+.username {
+    font-weight: 600;
+    color: #3a8dff;
+    margin-bottom: 4px;
+    font-size: 0.9em;
 }
 
 .system-message {
