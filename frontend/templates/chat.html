@@ -19,17 +19,14 @@
     </aside>
 
     <!-- Основная область чата -->
-    <div class="chat-main">
+    <div class="chat-main hidden">
         <header>
-            <h2 id="currentRoomName"></h2>
-            <div class="room-connect">
-                <span id="connectionSpinner" class="spinner hidden">Подключение...</span>
-            </div>
+            <h2 id="currentRoomName">Выберите чат</h2>
         </header>
         <div class="chat-box">
             <div id="chat"></div>
         </div>
-        <footer>
+        <footer class="hidden">
             <label for="messageInput"></label><input type="text" id="messageInput" placeholder="Сообщение">
             <button onclick="sendMessage()">Отправить</button>
             <div id="onlineUsers" class="online-users">👥 Online: (не загружено)</div>
@@ -40,8 +37,10 @@
     <div id="createRoomModal" class="modal hidden">
         <div class="modal-content">
             <h3>Создать новую комнату</h3>
-            <label for="newRoomName"></label><input type="text" id="newRoomName" placeholder="Название комнаты" required>
-            <label for="newRoomDescription"></label><textarea id="newRoomDescription" placeholder="Описание (необязательно)"></textarea>
+            <label for="newRoomName"></label><input type="text" id="newRoomName" placeholder="Название комнаты"
+                                                    required>
+            <label for="newRoomDescription"></label><textarea id="newRoomDescription"
+                                                              placeholder="Описание (необязательно)"></textarea>
             <div class="modal-actions">
                 <button id="confirmCreateRoom">Создать</button>
                 <button id="cancelCreateRoom">Отмена</button>

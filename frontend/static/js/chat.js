@@ -14,35 +14,33 @@ const cancelCreateRoom = document.getElementById("cancelCreateRoom");
 const burgerMenu = document.getElementById("burgerMenu");
 const sidebar = document.querySelector(".sidebar");
 const chatMain = document.querySelector(".chat-main");
-const connectionSpinner = document.getElementById("connectionSpinner");
 const currentRoomName = document.getElementById("currentRoomName");
+const footer = document.querySelector("footer");
 
-function formatTimestamp(timestamp) {
-    const now = new Date();
-    const date = new Date(timestamp.endsWith("Z") ? timestamp : timestamp + "Z");
-
-    const isToday = now.toDateString() === date.toDateString();
-
-    if (isToday) {
-        return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+async function checkAuth() {
+    try {
+        const response = await fetch("/auth/me", {
+            method: "GET",
+            credentials: "include",
+        });
+        if (!response.ok) {
+            window.location.href = "/login";
+            return false;
+        }
+        const data = await response.json();
+        currentUsername = data.username;
+        return true;
+    } catch (err) {
+        console.error("Ошибка проверки авторизации:", err);
+        window.location.href = "/login";
+        return false;
     }
-
-    const yesterday = new Date();
-    yesterday.setDate(now.getDate() - 1);
-
-    if (yesterday.toDateString() === date.toDateString()) {
-        return `вчера, ${date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
-    }
-
-    return date.toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "long"
-    }) + ", " + date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 }
 
+
 async function fetchRooms() {
+    const errorBlock = document.getElementById("error");
     try {
-        const errorBlock = document.getElementById("error");
         const response = await fetch("rooms", {
             method: "GET",
             credentials: "include",
@@ -97,7 +95,7 @@ async function createRoom() {
         newRoomName.value = "";
         newRoomDescription.value = "";
         await fetchRooms();
-        connectToRoom(newRoom.id, newRoom.name);
+        await connectToRoom(newRoom.id, newRoom.name);
     } catch (err) {
         console.error("Ошибка создания комнаты:", err);
         alert("⚠ Ошибка создания комнаты: " + err.message);
@@ -111,7 +109,7 @@ async function connectToRoom(roomId, roomName) {
     currentRoomId = roomId;
     currentRoomName.textContent = roomName;
     chatMain.classList.remove("hidden");
-    connectionSpinner.classList.remove("hidden");
+    footer.classList.remove("hidden");
     chatDiv.innerHTML = "";
 
     try {
@@ -133,9 +131,7 @@ async function connectToRoom(roomId, roomName) {
 
         socket.onopen = () => {
             console.log("✅ WebSocket connected");
-            chatDiv.innerHTML = "";
             messageInput.focus();
-            connectionSpinner.classList.add("hidden");
             document.querySelectorAll(".room-item").forEach(item => {
                 item.classList.toggle("active", item.dataset.roomId === roomId);
             });
@@ -228,7 +224,6 @@ async function connectToRoom(roomId, roomName) {
 
     } catch (err) {
         alert("⚠ Ошибка подключения: " + err.message);
-        connectionSpinner.classList.add("hidden");
     }
 }
 
@@ -268,9 +263,18 @@ messageInput.addEventListener("keyup", function (event) {
 });
 
 document.addEventListener("keydown", (event) => {
-    if (!createRoomModal.classList.contains("hidden")) return;
+    if (!createRoomModal.classList.contains("hidden")) {
+        if (event.key === "Escape") {
+            createRoomModal.classList.add("hidden");
+            newRoomName.value = "";
+            newRoomDescription.value = "";
+        }
+        return;
+    }
+
     if (event.key === "Escape" && currentRoomId !== null) {
         chatMain.classList.add("hidden");
+        footer.classList.add("hidden");
         if (socket) {
             socket.close();
             socket = null;
@@ -319,5 +323,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 window.onload = async () => {
-    await fetchRooms();
+    if (await checkAuth()) {
+        await fetchRooms();
+    }
 };
